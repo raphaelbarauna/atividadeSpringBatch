@@ -9,6 +9,6 @@ public class MyFlatFileWriter implements FlatFileHeaderCallback {
 
     @Override
     public void writeHeader(Writer writer) throws IOException {
-        writer.write("Número , Par/Impar , Multiplo17 , Resto17");
+        writer.write("Numero ; Par/Impar ; Multiplo17 ; Resto17");
     }
 }

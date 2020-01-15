@@ -8,10 +8,7 @@ public class ArquivoEntradaFieldSetMapper implements FieldSetMapper<ArquivoEntra
 
     @Override
     public ArquivoEntrada mapFieldSet(FieldSet fieldSet) throws BindException {
-        return new ArquivoEntrada(fieldSet.readLong("numero"),
-                fieldSet.readString("Par/Impar"),
-                fieldSet.readLong("multiplo17"),
-                fieldSet.readLong("resto17"));
+        return new ArquivoEntrada(fieldSet.readLong("numero"));
 
     }
 

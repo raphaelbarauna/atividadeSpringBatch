@@ -64,8 +64,9 @@ public class BatchConfiguration {
         writer.setResource(outputResource);
 
         DelimitedLineAggregator<ArquivoEntrada> lineAggregator = new DelimitedLineAggregator<ArquivoEntrada>();
-        lineAggregator.setDelimiter(",");
+        lineAggregator.setDelimiter(";");
 
+        writer.setHeaderCallback(new MyFlatFileWriter());
         BeanWrapperFieldExtractor<ArquivoEntrada>  fieldExtractor = new BeanWrapperFieldExtractor<ArquivoEntrada>();
         fieldExtractor.setNames(new String[]{"numero","parOuImpar","multiplo17","resto17"});
         lineAggregator.setFieldExtractor(fieldExtractor);

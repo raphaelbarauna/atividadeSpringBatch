@@ -2,6 +2,8 @@ package com.example.demo.domain;
 
 import com.example.demo.model.enums.ParOuImparEnum;
 
+import java.text.DecimalFormat;
+
 public class ArquivoEntrada {
 
         private long numero;
@@ -12,7 +14,7 @@ public class ArquivoEntrada {
     public ArquivoEntrada() {
     }
 
-    public ArquivoEntrada(long numero, String parOuImpar, long multiplo17, long resto17) {
+    public ArquivoEntrada(long numero) {
         this.numero = numero;
         this.parOuImpar = parOuImpar;
         this.multiplo17 = multiplo17;
@@ -44,6 +46,7 @@ public class ArquivoEntrada {
     }
 
     public long getResto17() {
+
         return resto17;
     }
 
