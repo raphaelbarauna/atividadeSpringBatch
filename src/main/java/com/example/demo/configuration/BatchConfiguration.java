@@ -53,7 +53,6 @@ public class BatchConfiguration {
         arquivoEntradaDefaultLineMapper.setFieldSetMapper(new ArquivoEntradaFieldSetMapper());
         arquivoEntradaDefaultLineMapper.afterPropertiesSet();
         reader.setLineMapper(arquivoEntradaDefaultLineMapper);
-        //reader.setLineMapper(new ArquivoEntradaLineMapper());
 
         return reader;
     }
@@ -77,6 +76,7 @@ public class BatchConfiguration {
 
     @Bean
     public ArquivoProcessor processor(){
+        //Classe que irá montar o Arquivo de saída
         return new ArquivoProcessor();
     }
 
