@@ -1,36 +1,27 @@
 package com.example.demo.configuration;
 
 import com.example.demo.domain.ArquivoEntradaFieldSetMapper;
-import com.example.demo.model.ArquivoEntrada;
+import com.example.demo.domain.ArquivoEntrada;
+import com.example.demo.processor.ArquivoProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.MultiResourceItemReader;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.*;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 
-import javax.swing.*;
+import java.util.ArrayList;
 
 @Configuration
-@EnableBatchProcessing
 public class BatchConfiguration {
 
     @Autowired
@@ -39,22 +30,19 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    @Value("classpath:/input.csv")
-    private UrlResource[] inputResources;
-
-    private Resource outputResource = new FileSystemResource("resources/output.csv");
+    private Resource outputResource = new FileSystemResource("data/outputData.csv");
 
     @Bean
     public FlatFileItemReader<ArquivoEntrada> arquivoEntradaFlatFileItemReader(){
         FlatFileItemReader<ArquivoEntrada> reader = new FlatFileItemReader<>();
         //Pular a linha do cabeçalho
         reader.setLinesToSkip(1);
-        reader.setResource(new ClassPathResource("/data/input.csv"));
-
+        reader.setResource(new ClassPathResource("data/input.csv"));
+        reader.setStrict(true);
         DefaultLineMapper<ArquivoEntrada> arquivoEntradaDefaultLineMapper = new DefaultLineMapper<>();
 
         DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
-        tokenizer.setNames(new String[] {"Número"});
+        tokenizer.setNames("numero");
 
         arquivoEntradaDefaultLineMapper.setLineTokenizer(tokenizer);
         arquivoEntradaDefaultLineMapper.setFieldSetMapper(new ArquivoEntradaFieldSetMapper());
@@ -66,15 +54,41 @@ public class BatchConfiguration {
     }
 
     @Bean
+    public ItemWriter<ArquivoEntrada> arquivoEntradaItemWriter(){
+        //Create writer instance
+        FlatFileItemWriter<ArquivoEntrada> writer = new FlatFileItemWriter<>();
+        ArrayList<ArquivoEntrada> lista = new ArrayList<>();
+        //Set output file location
+        writer.setResource(outputResource);
+        //All job repetitions should "append" to same output file
+        writer.setAppendAllowed(true);
+        //Name field values sequence based on object properties
+        writer.setLineAggregator(new DelimitedLineAggregator<ArquivoEntrada>() {
+            {
+                setDelimiter(",");
+                setFieldExtractor(new BeanWrapperFieldExtractor<ArquivoEntrada>() {
+                    {
+                        setNames(new String[] { "Numero", "Par/Impar", "Multiplo17, Resto17" });
+                    }
+                });
+            }
+        });
+        return writer;
+    }
+
+    @Bean
+    public ArquivoProcessor processor(){
+        return new ArquivoProcessor();
+    }
+
+    @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
-                .tasklet(new Tasklet() {
-                    @Override
-                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
-                        System.out.println("Hello ");
-                        return RepeatStatus.FINISHED;
-                    }
-                }).build();
+                .<ArquivoEntrada, ArquivoEntrada>chunk(10)
+                .reader(arquivoEntradaFlatFileItemReader())
+                .processor(processor())
+                .writer(arquivoEntradaItemWriter())
+                .build();
     }
 
     @Bean
