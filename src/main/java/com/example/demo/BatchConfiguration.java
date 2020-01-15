@@ -14,9 +14,7 @@ import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
-import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.file.transform.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +23,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.springframework.core.io.UrlResource;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -39,10 +38,10 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    @Value("classPath:/inputData.csv")
-    private Resource[] inputResources;
+    @Value("classpath:/input.csv")
+    private UrlResource[] inputResources;
 
-    private Resource outputResource = new FileSystemResource("output/outputData.csv");
+    private Resource outputResource = new FileSystemResource("resources/output.csv");
 
 
     @Bean
@@ -51,24 +50,37 @@ public class BatchConfiguration {
         //Create writer instance
         FlatFileItemWriter<ArquivoEntrada> writer = new FlatFileItemWriter<>();
 
+        String exportFileHeader = "Número, Par/Impar, Multiplo17, Resto17";
+        StringHeaderWriter headerWriter = new StringHeaderWriter(exportFileHeader);
+
+        writer.setHeaderCallback(headerWriter);
         //Set output file location
         writer.setResource(outputResource);
 
         //All job repetitions should "append" to same output file
         writer.setAppendAllowed(true);
 
+        LineAggregator<ArquivoEntrada> lineAggregator = createStudentLineAggregator();
         //Name field values sequence based on object properties
-        writer.setLineAggregator(new DelimitedLineAggregator<ArquivoEntrada>() {
-            {
-                setDelimiter(",");
-                setFieldExtractor(new BeanWrapperFieldExtractor<ArquivoEntrada>() {
-                    {
-                        setNames(new String[] { "Número", "Par/Impar","Multiplo17","Resto17" });
-                    }
-                });
-            }
-        });
+        writer.setLineAggregator(lineAggregator);
+
         return writer;
+    }
+
+    private LineAggregator<ArquivoEntrada> createStudentLineAggregator() {
+        DelimitedLineAggregator<ArquivoEntrada> lineAggregator = new DelimitedLineAggregator<>();
+        lineAggregator.setDelimiter(",");
+
+        FieldExtractor<ArquivoEntrada> fieldExtractor = createFileFieldExtractor();
+        lineAggregator.setFieldExtractor(fieldExtractor);
+
+        return lineAggregator;
+    }
+
+    private FieldExtractor<ArquivoEntrada> createFileFieldExtractor() {
+        BeanWrapperFieldExtractor<ArquivoEntrada> extractor = new BeanWrapperFieldExtractor<>();
+        extractor.setNames(new String[] {"numero", "parOuImpar", "multiplo17", "resto17"});
+        return extractor;
     }
 
     @Bean
@@ -88,16 +100,6 @@ public class BatchConfiguration {
                 .build();
     }
 
-    @Bean
-    public  MyFlatFileHeaderCallback myFlatFileHeaderCallback() {
-
-        @Override
-        public void writeHeader(Writer writer) throws IOException {
-            System.out.println("Header called");
-
-        }
-
-    }
 
     @Bean
     public MultiResourceItemReader<ArquivoEntrada> multiResourceItemReader()
