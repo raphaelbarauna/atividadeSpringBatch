@@ -1,5 +1,6 @@
 package com.example.demo.configuration;
 
+import com.example.demo.domain.ArquivoEntradaFieldSetMapper;
 import com.example.demo.model.ArquivoEntrada;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -41,6 +43,27 @@ public class BatchConfiguration {
     private UrlResource[] inputResources;
 
     private Resource outputResource = new FileSystemResource("resources/output.csv");
+
+    @Bean
+    public FlatFileItemReader<ArquivoEntrada> arquivoEntradaFlatFileItemReader(){
+        FlatFileItemReader<ArquivoEntrada> reader = new FlatFileItemReader<>();
+        //Pular a linha do cabeçalho
+        reader.setLinesToSkip(1);
+        reader.setResource(new ClassPathResource("/data/input.csv"));
+
+        DefaultLineMapper<ArquivoEntrada> arquivoEntradaDefaultLineMapper = new DefaultLineMapper<>();
+
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+        tokenizer.setNames(new String[] {"Número"});
+
+        arquivoEntradaDefaultLineMapper.setLineTokenizer(tokenizer);
+        arquivoEntradaDefaultLineMapper.setFieldSetMapper(new ArquivoEntradaFieldSetMapper());
+        arquivoEntradaDefaultLineMapper.afterPropertiesSet();
+
+        reader.setLineMapper(arquivoEntradaDefaultLineMapper);
+
+        return reader;
+    }
 
     @Bean
     public Step step1() {
