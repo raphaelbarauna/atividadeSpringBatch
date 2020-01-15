@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.configuration;
 
 import org.springframework.batch.item.file.FlatFileHeaderCallback;
 

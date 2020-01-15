@@ -19,11 +19,5 @@ public class DemoApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 	}
-	public void perform() throws Exception
-	{
-		JobParameters params = new JobParametersBuilder()
-				.addString("JobID", String.valueOf(System.currentTimeMillis()))
-				.toJobParameters();
-		jobLauncher.run(job, params);
-	}
+
 }

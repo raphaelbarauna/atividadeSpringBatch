@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.configuration;
 import java.util.List;
 
 import org.springframework.batch.item.ItemWriter;
