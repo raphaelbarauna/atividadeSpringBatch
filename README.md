@@ -1,4 +1,5 @@
 # atividadeSpringBatch
+O arquivo está sendo na raiz do projeto na pasta data, o arquivo é gerado ao parar a aplicação.
 
 Adicionar linha de comando para execução do projeto :
 
