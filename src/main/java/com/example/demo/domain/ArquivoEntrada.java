@@ -1,6 +1,5 @@
 package com.example.demo.domain;
 
-import com.example.demo.model.enums.ParOuImparEnum;
 
 import java.text.DecimalFormat;
 
